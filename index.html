@@ -1,0 +1,276 @@
+﻿<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+    $("#submit_btn").click(function() { 
+     
+	    var proceed = true;
+        //валидация формы на стороне клиента
+        //меняем границы поля на красный цвет, для обязательных полей	
+		$("#contact_form input[required=true], #contact_form textarea[required=true]").each(function(){
+			$(this).css('border-color',''); 
+			if(!$.trim($(this).val())){ //если поле пустое 
+				$(this).css('border-color','red'); //меняем границу поля на красный цвет  
+				proceed = false; //не продолжать
+			}
+			//проверяем не верный адрес электронной почты
+			var email_reg = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/; 
+			if($(this).attr("type")=="email" && !email_reg.test($.trim($(this).val()))){
+				$(this).css('border-color','red'); //меняем цвет границы на красный   
+				proceed = false; //не продолжать выполнение				
+			}	
+		});
+       
+        if(proceed) //если всё заполнено правильно, тогда продолжим
+        {
+	    //получаем значения ввода данных, которые отправим на сервер
+        post_data = {
+	    'company_name'              : $('input[name=company-name]').val(), 
+	    'company_activity'	        : $('input[name=activity]').val(), 
+	    'company_character'	        : $('input[name=character]').val(), 
+	    'company_properties'        : $('input[name=properties]').val(), 
+	    'company_corporate_website' : $('input[name=corporate-website]').val(),
+            'company_contact_number'    : $('input[name=contact-number]').val(),
+            'company_contact_email'     : $('input[name=contact-email]').val(),
+            'company_contact_person'    : $('input[name=contact-person]').val(),
+
+            'company_goal'          : $('input[name=goal]').val(),
+            'company_site_business' : $('input[name=business]').val(),
+            'company_site_corporate': $('input[name=corporate]').val(),
+            'company_site_promo'    : $('input[name=promo]').val(),
+	    'company_site_ecommerce': $('input[name=ecommerce]').val(),
+            'company_site_info'     : $('input[name=info]').val(),
+            'company_site_other'     : $('input[name=other]').val(),
+	};
+            
+//отправляем данные на сервер через ajax
+  $.post('brief_me.php', post_data, function(response){  
+    if(response.type == 'error'){ //загружаем json данные с сервера   
+       output = '<div class="error">'+response.text+'</div>';
+    }else{
+       output = '<div class="success">'+response.text+'</div>';
+  //сброс значений во всех полях ввода
+  $("#contact_form  input[required=true], #contact_formtextarea[required=true]").val(''); 
+  $("#contact_form #contact_body").slideUp(); //скрываем форму после успешного ввода
+  }
+  $("#contact_form #contact_results").hide().html(output).slideDown();
+       }, 'json');
+   }
+});
+    
+    //сбрасываем предыдущие цвет границы и прячем все сообщения on .keyup()
+    $("#contact_form  input[required=true], #contact_form textarea[required=true]").keyup(function() { 
+        $(this).css('border-color',''); 
+        $("#result").slideUp();
+    });
+});
+
+// добавить сайты которые нравятся
+$(document).ready(function() {
+    var max_fields      = 5; //максимальное кол-во полей с сайтами
+    var wrapper         = $(".input_fields_wrap"); //обёртка для полей
+    var add_button      = $(".add_field_button"); //кнопка добавить ID
+   
+    var x = 1; //инициализируем счётсчик полей
+    $(add_button).click(function(e){ //при нажатии кнопка добавить on.click
+        e.preventDefault();
+        if(x < max_fields){ //максимальное входное поле
+            x++; //увеличение текстового поля
+            $(wrapper).append('<div><input type="text" class="input-field" name="mytext[]"/><a href="#" class="remove_field">Отменить</a></div>'); //добавит строку ввода
+        }
+    });
+   
+    $(wrapper).on("click",".remove_field", function(e){ //нажатие для уборки поля
+        e.preventDefault(); $(this).parent('div').remove(); x--;
+    })
+});
+</script>
+
+
+<div class="form-style" id="contact_form">
+    <div id="contact_results"></div>
+	
+	<!-- Информация о заказчике -->
+    <h2>Информация о заказчике</h2>
+    <div id="contact_body">
+        <label><span>Название компании <span class="required"> *</span></span>
+            <input type="text" name="company-name" id="name" required="true" class="input-field"/>
+        </label>
+
+	<label><span>Сфера деятельности</span>
+            <input type="text" name="activity" id="name" class="input-field"/>
+        </label>
+
+	<label><span>Характеристика основных товаров/услуг</span></span>
+            <input type="text" name="character" id="name" class="input-field"/>
+        </label>
+
+	<label><span>Преимущества/уникальные свойства товаров/услуг</span>
+            <input type="text" name="properties" id="name" class="input-field"/>
+        </label>
+
+        <label><span>Корпоративный сайт (если есть)</span>
+            <input type="text" name="corporate-website" id="name" class="input-field"/>
+        </label>
+
+        <label><span>Контактное лицо</span>
+            <input type="text" name="contact-number" maxlength="25" placeholder="Телефон"
+            class="tel-number-field long" />
+
+            <input type="text" name="contact-email" maxlength="25" placeholder="Email"
+            class="tel-number-field long"/>
+
+            <input type="text" name="contact-person" maxlength="25" placeholder="Ф.И.О" 
+            class="tel-number-field long"/>
+        </label>
+
+		<!-- Общие сведения о сайте -->
+        <h2>Общие сведения о сайте</h2>
+
+        <label><span>Цель создания</span></span>
+            <input type="text" name="goal" id="name" class="input-field"/>
+        </label>
+
+		<label><span>Тип сайта</span>
+				<div class="checkbox">
+				  <div class="check1">
+				   <input type="checkbox" name="business">Сайт визитка
+				  </div>
+
+				  <div class="check2">
+				  <input type="checkbox" name="corporate">Корпоративный сайт
+				  </div>
+
+				  <div class="check3">
+				  <input type="checkbox" name="promo">Промо сайт
+				 </div>   
+			   </div>
+				<div class="checkbox-2">
+
+				  <div class="check1">
+				   <input type="checkbox" name="ecommerce">Интернет магазин
+				  </div>
+
+				  <div class="check2">
+				  <input type="checkbox" name="info">Информационный сайт
+				  </div>
+
+				  <div class="check3">
+				  <input type="checkbox" name="other">Другое
+				 </div>   
+			   </div>
+			</label>
+
+			<label><span>Целевая аудитория</span></span>
+				<input type="text" name="name" id="name" class="input-field"/>
+			</label>
+
+			<label><span>Впечатление, которое должен производить сайт</span>
+				<input type="text" name="name" id="name" class="input-field"/>
+			</label>
+
+			<label><span>Критерии оценки эффективности будущего сайта</span>
+				<input type="text" name="name" id="name" class="input-field"/>
+			</label>
+
+			<label><span>Дополнительная информация о сайте</span>
+				<input type="text" name="name" id="name" class="input-field"/>
+			</label>
+
+
+		<!-- Дизайн -->
+        <h2>Дизайн</h2>
+           <label><span>Акцент в сайте</span>
+            <div class="checkbox-design">
+              <div class="check1">
+                <input type="checkbox" name="site-type">Дизайн
+              </div>
+
+              <div class="check2">
+                <input type="checkbox" name="site-type">Подача информации
+              </div>
+
+              <div class="check3">
+                <input type="checkbox" name="site-type">Удобство пользования
+              </div>   
+             </div>
+
+            <div class="checkbox-design-2">
+              <div class="check1">
+               <input type="checkbox" name="site-type">На усмотрение дизайнера
+              </div>
+
+              <div class="check2">
+              <input type="checkbox" name="site-type">Ваш вариант
+              </div>
+
+              <div class="check3">
+              <input type="checkbox" name="site-type">Другое
+             </div>   
+           </div>
+        </label>
+
+	<label><span>Сайт по восприятию</span>
+            <div class="checkbox-perception">
+              <div class="check1">
+               <input type="checkbox" name="site-type">Деловой
+              </div>
+
+              <div class="check2">
+              <input type="checkbox" name="site-type">Гламурный
+              </div>
+
+              <div class="check3">
+                <input type="checkbox" name="site-type">Дорогой
+             </div>   
+           </div>
+            <div class="checkbox-perception-2">
+              <div class="check1">
+               <input type="checkbox" name="site-type">Информативный
+              </div>
+
+              <div class="check2">
+              <input type="checkbox" name="site-type">Стильный
+              </div>
+
+              <div class="check3">
+              <input type="checkbox" name="site-type">Ваш вариант
+             </div>   
+           </div>
+        </label>
+
+        <label><span>Цветовая гамма</span>
+            <div class="checkbox-gamma">
+              <div class="check1">
+               <input type="checkbox" name="site-type">Цвета фирменного стиля <br/>
+               и сочетаемые с ними
+              </div>
+
+              <div class="check2">
+              <input type="checkbox" name="site-type">На усмотрение дизайнера
+              </div>  
+           </div>
+           
+             <label><span>Цвета, которые следует использовать</span>
+               <input type="text" name="name" id="name" class="input-field"/>
+            </label>
+
+             <label><span>Цвета, которые нельзя использовать</span>
+               <input type="text" name="name" id="name" class="input-field"/>
+            </label>
+
+        </label>
+
+        <label><span>Примеры сайтов, которые нравятся</span>
+               <div class="input_fields_wrap">
+                 <!-- <input type="text" name="mytext[]" class="input-field" /> -->
+                    <br/>
+                   <button class="add_field_button">Добавить сайт</button> 
+               </div>
+        </label>
+   <br/>
+        <label>
+            <input type="submit" id="submit_btn" value="Отправить форму" />
+        </label>
+
+    </div>
+</div>
